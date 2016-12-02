@@ -5,6 +5,7 @@ defmodule AdventOfCode.Taxi do
 
     def turn(position, "R"), do: %{ position | facing: right_of(position.facing) }
     def turn(position, "L"), do: %{ position | facing: left_of(position.facing) }
+    def turn(position, "S"), do: position
 
     def forward(position, distance) do
       case position.facing do
@@ -34,28 +35,43 @@ defmodule AdventOfCode.Taxi do
   end
 
   def distance_to_repeat(route) do
-    # visited = []
-    # segments = route
-    # |> split_segments
-
+    route
+    |> split_segments
+    |> first_repeat
+    |> distance
   end
 
+  defp first_repeat([segment | directions], position \\ %Position{}, visited \\ []) do
+    if Enum.find(visited, fn p -> p.x == position.x && p.y == position.y end) do
+      position
+    else
+      {direction, distance} = translate_segment(segment)
+      case distance do
+        1 -> first_repeat(directions, shift(position, segment), [position|visited])
+        _ -> first_repeat(["S#{distance-1}"|directions], shift(position, {direction, 1}), [position|visited])
+      end
+    end
+  end
 
   defp split_segments(route), do: String.split(route, ", ")
   defp distance(to = %Position{}), do: abs(to.x) + abs(to.y)
 
   defp follow(directions, position \\ %Position{})
-  defp follow([direction], position), do: shift(position, direction)
-  defp follow([direction | directions], position), do: follow(directions, shift(position, direction))
+  defp follow([segment], position), do: shift(position, segment)
+  defp follow([segment | directions], position), do: follow(directions, shift(position, segment))
 
-  defp shift(position, segment) do
-    regex = ~r/(?<direction>R|L)(?<distance>\d+)/
-    [direction, distance] = Regex.run(regex, segment, capture: :all_but_first)
+  @segment_regexp  ~r/(?<direction>[RLS])(?<distance>\d+)/
+  defp translate_segment(segment) do
+    [direction, distance] = Regex.run(@segment_regexp, segment, capture: :all_but_first)
     distance = String.to_integer(distance)
+    { direction, distance }
+  end
 
+  defp shift(position, {direction, distance}) do
     position
     |> Position.turn(direction)
     |> Position.forward(distance)
   end
+  defp shift(position, segment), do: shift(position, translate_segment(segment))
 
 end
