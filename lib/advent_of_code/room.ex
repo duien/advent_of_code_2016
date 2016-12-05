@@ -1,4 +1,5 @@
 defmodule AdventOfCode.Room do
+  # defstruct name: nil, checksum: nil, sector
 
   @room_regex ~r|(?<name>([a-z]+-)+)(?<sector>\d+)\[(?<checksum>[a-z]{5})\]|
   @alphabet String.graphemes("abcdefghijklmnopqrstuvwxyz")
@@ -14,6 +15,14 @@ defmodule AdventOfCode.Room do
     |> Enum.filter(&real?(&1))
     |> Enum.map(&sector(&1))
     |> Enum.sum
+  end
+
+  def print_valid_rooms(rooms) do
+    rooms
+    |> String.split("\n")
+    |> Enum.filter(&real?(&1))
+    |> Enum.find(&(decipher(&1) == "northpole object storage"))
+    |> sector
   end
 
   def decipher(room) do
@@ -32,6 +41,7 @@ defmodule AdventOfCode.Room do
       end
     end)
     |> Enum.join
+    |> String.trim
   end
 
   defp extract(room) do
