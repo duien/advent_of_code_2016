@@ -7,6 +7,12 @@ defmodule AdventOfCodeTest.PasswordTest do
     end
   end
 
+  describe "AdventOfCode.Password.generate_complex/1" do
+    test "generates complex password from 'abc'" do
+      assert AdventOfCode.Password.generate_complex("abc") == "05ace8e3"
+    end
+  end
+
   test "can generate a hash" do
     input = "abc3231929"
     hashed = :crypto.hash(:md5, input) |> Base.encode16
