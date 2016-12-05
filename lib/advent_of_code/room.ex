@@ -2,10 +2,25 @@ defmodule AdventOfCode.Room do
 
   @room_regex ~r|(?<name>([a-z]+-)+)(?<sector>\d+)\[(?<checksum>[a-z]{5})\]|
   def real?(room) do
-    extract = Regex.named_captures(@room_regex, room)
-    IO.inspect(extract)
-    %{"name" => name, "sector" => sector, "checksum" => checksum } = extract
+    %{"name" => name, "checksum" => checksum } = extract(room)
     checksum == generate_checksum(name)
+  end
+
+  def sum_sectors(rooms) do
+    rooms
+    |> String.split("\n")
+    |> Enum.filter(&real?(&1))
+    |> Enum.map(&sector(&1))
+    |> Enum.sum
+  end
+
+  defp extract(room) do
+    Regex.named_captures(@room_regex, room)
+  end
+
+  defp sector(room) do
+    %{"sector" => sector} = extract(room)
+    String.to_integer(sector)
   end
 
   defp generate_checksum(name) do
